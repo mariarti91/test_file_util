@@ -7,6 +7,7 @@
 #include <memory>
 #include <functional>
 #include <iomanip>
+#include <cstring>
 
 using namespace Test;
 
@@ -104,5 +105,30 @@ unsigned long Application::countOfWords( const std::string &target_word ) {
 }
 
 std::vector<char> Application::calculateChecksum() {
-	return std::vector<char>{0, 0, 0, 0};
+	static auto stream_deleter = [](std::ifstream* s){
+		if(s->is_open()) s->close();
+		delete s;
+	};
+
+	std::unique_ptr<std::ifstream, std::function<void(std::ifstream*)>> ifs{new std::ifstream(), stream_deleter};
+	ifs->open(target_filename, std::ifstream::binary);
+	if(!ifs->is_open())
+		throw std::runtime_error{ "'" + target_filename + "' file opening error" };
+
+	uint32_t hash = 0;
+	size_t buffer_size = 4;
+	std::vector<char> buffer(buffer_size, 0);
+	while(!ifs->eof()){
+		ifs->read(buffer.data(), buffer_size);
+		if(ifs->gcount() < buffer_size)
+			std::for_each(buffer.begin() + ifs->gcount(), buffer.end(), [](char &ch){ch = 0;});
+		hash += ((buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + buffer[3] );
+	}
+
+	return std::vector<char>{
+		static_cast<char>((hash >> 24)),
+		static_cast<char>((hash >> 16)),
+		static_cast<char>((hash >> 8)),
+		static_cast<char>((hash))
+	};
 }
