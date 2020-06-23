@@ -7,7 +7,9 @@
 #include <memory>
 #include <functional>
 
-TestApplication::TestApplication( int argc, char **argv )
+using namespace Test;
+
+Application::Application( int argc, char **argv )
 :application_name{argv[0] }
 ,args{argv + 1, argv + argc}
 {
@@ -26,7 +28,7 @@ TestApplication::TestApplication( int argc, char **argv )
 	detectWorkMode();
 }
 
-int TestApplication::run() {
+int Application::run() {
 	switch( current_mode ) {
 		case WorkMode::HELP: {
 			printHelpMessage();
@@ -48,23 +50,23 @@ int TestApplication::run() {
 	return 0;
 }
 
-void TestApplication::printHelpMessage() {
+void Application::printHelpMessage() {
 	std::cout << "Usage:\n"
 	          << "  " << application_name << " -h                                - for output a help message\n"
 	          << "  " << application_name << " -f <file_name> -m words -v <word> - for calculate count of words <word> in the file <file_name>\n"
 	          << "  " << application_name << " -f <file_name> -m checksum        - for calculate a checksum of <file_name> file\n";
 }
 
-bool TestApplication::isArgExists( const std::string &arg ) const {
+bool Application::isArgExists( const std::string &arg ) const {
 	return std::find(args.cbegin(), args.cend(), arg) != args.cend();
 }
 
-std::string TestApplication::getArgValue(const std::string &arg_name) const {
+std::string Application::getArgValue(const std::string &arg_name) const {
 	auto iter = std::find(args.cbegin(), args.cend(), arg_name) + 1;
 	return iter == args.cend() ? "" : *iter ;
 }
 
-void TestApplication::detectWorkMode() {
+void Application::detectWorkMode() {
 	static std::map<std::string, WorkMode> modes_table = {
 		{ "words", WorkMode::WORDS},
 		{ "checksum", WorkMode::CHECKSUM}
@@ -77,7 +79,7 @@ void TestApplication::detectWorkMode() {
 	current_mode = iter->second;
 }
 
-unsigned long TestApplication::countOfWords( const std::string &target_word ) {
+unsigned long Application::countOfWords( const std::string &target_word ) {
 	static auto stream_deleter = [](std::ifstream* s){
 		if(s->is_open()) s->close();
 		delete s;
