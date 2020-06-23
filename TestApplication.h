@@ -3,6 +3,8 @@
 
 #include <string>
 #include <vector>
+#include <functional>
+#include <memory>
 
 namespace Test {
 
@@ -17,6 +19,7 @@ private:
 	bool isArgExists( const std::string &arg ) const;
 	std::string getArgValue( const std::string &arg_name ) const;
 	void detectWorkMode();
+	void openFile();
 
 	unsigned long countOfWords( const std::string &target_word );
 	std::vector<char> calculateChecksum();
@@ -28,6 +31,7 @@ private:
 	};
 	WorkMode current_mode = WorkMode::HELP;
 	std::string target_filename = "";
+	std::unique_ptr<std::ifstream, std::function<void(std::ifstream*)>> ifs;
 
 	std::string application_name;
 	std::vector<std::string> args;

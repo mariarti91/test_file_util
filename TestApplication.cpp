@@ -4,8 +4,6 @@
 #include <algorithm>
 #include <map>
 #include <fstream>
-#include <memory>
-#include <functional>
 #include <iomanip>
 #include <cstring>
 
@@ -28,6 +26,7 @@ Application::Application( int argc, char **argv )
 		throw std::runtime_error{ "filename has not supplied" };
 
 	detectWorkMode();
+	openFile();
 }
 
 int Application::run() {
@@ -85,17 +84,19 @@ void Application::detectWorkMode() {
 	current_mode = iter->second;
 }
 
-unsigned long Application::countOfWords( const std::string &target_word ) {
+void Application::openFile() {
 	static auto stream_deleter = [](std::ifstream* s){
 		if(s->is_open()) s->close();
 		delete s;
 	};
 
-	std::unique_ptr<std::ifstream, std::function<void(std::ifstream*)>> ifs{new std::ifstream(), stream_deleter};
+	ifs = std::unique_ptr<std::ifstream, std::function<void(std::ifstream*)>>{new std::ifstream(), stream_deleter};
 	ifs->open(target_filename);
 	if(!ifs->is_open())
 		throw std::runtime_error{ "'" + target_filename + "' file opening error" };
+}
 
+unsigned long Application::countOfWords( const std::string &target_word ) {
 	std::string word;
 	unsigned long word_count = 0;
 	while(*ifs >> word)
@@ -105,16 +106,6 @@ unsigned long Application::countOfWords( const std::string &target_word ) {
 }
 
 std::vector<char> Application::calculateChecksum() {
-	static auto stream_deleter = [](std::ifstream* s){
-		if(s->is_open()) s->close();
-		delete s;
-	};
-
-	std::unique_ptr<std::ifstream, std::function<void(std::ifstream*)>> ifs{new std::ifstream(), stream_deleter};
-	ifs->open(target_filename, std::ifstream::binary);
-	if(!ifs->is_open())
-		throw std::runtime_error{ "'" + target_filename + "' file opening error" };
-
 	uint32_t hash = 0;
 	size_t buffer_size = 4;
 	std::vector<char> buffer(buffer_size, 0);
