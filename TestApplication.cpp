@@ -6,6 +6,7 @@
 #include <fstream>
 #include <memory>
 #include <functional>
+#include <iomanip>
 
 using namespace Test;
 
@@ -43,7 +44,11 @@ int Application::run() {
 			break;
 		}
 		case WorkMode::CHECKSUM: {
-			std::cout << "calculate CHECKSUM in file '" << target_filename << "'\n";
+			auto checksum = calculateChecksum();
+			std::cout << "checksum of file '" << target_filename << "': 0x";
+			std::cout << std::hex;
+			for(char& ch : checksum) std::cout << std::setw(2) << std::setfill('0')  << static_cast<int>(ch);
+			std::cout << std::dec << "\n";
 			break;
 		}
 	}
@@ -96,4 +101,8 @@ unsigned long Application::countOfWords( const std::string &target_word ) {
 		if(word == target_word) ++word_count;
 
 	return word_count;
+}
+
+std::vector<char> Application::calculateChecksum() {
+	return std::vector<char>{0, 0, 0, 0};
 }

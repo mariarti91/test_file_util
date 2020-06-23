@@ -19,6 +19,7 @@ private:
 	void detectWorkMode();
 
 	unsigned long countOfWords( const std::string &target_word );
+	std::vector<char> calculateChecksum();
 
 	enum class WorkMode {
 		HELP,
