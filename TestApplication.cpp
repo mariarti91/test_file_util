@@ -3,6 +3,9 @@
 #include <iostream>
 #include <algorithm>
 #include <map>
+#include <fstream>
+#include <memory>
+#include <functional>
 
 TestApplication::TestApplication( int argc, char **argv )
 :application_name{argv[0] }
@@ -25,15 +28,22 @@ TestApplication::TestApplication( int argc, char **argv )
 
 int TestApplication::run() {
 	switch( current_mode ) {
-		case WorkMode::HELP:
+		case WorkMode::HELP: {
 			printHelpMessage();
 			break;
-		case WorkMode::WORDS:
-			std::cout << "calculate WORDS in file '" << target_filename << "'\n";
+		}
+		case WorkMode::WORDS: {
+			if( !isArgExists("-v"))
+				throw std::runtime_error{"target word has not supplied"};
+			std::string target_word = getArgValue("-v");
+			unsigned long word_count = countOfWords(target_word);
+			std::cout << "word count of '" << target_word << "' in file '" << target_filename << "' is " << word_count << "\n";
 			break;
-		case WorkMode::CHECKSUM:
+		}
+		case WorkMode::CHECKSUM: {
 			std::cout << "calculate CHECKSUM in file '" << target_filename << "'\n";
 			break;
+		}
 	}
 	return 0;
 }
@@ -59,10 +69,29 @@ void TestApplication::detectWorkMode() {
 		{ "words", WorkMode::WORDS},
 		{ "checksum", WorkMode::CHECKSUM}
 	};
-	
+
 	auto mode_string = getArgValue("-m");
 	auto iter = modes_table.find(mode_string);
 	if(iter == modes_table.end())
 		throw std::runtime_error{ "illegal mode value '" + mode_string + "'" };
 	current_mode = iter->second;
+}
+
+unsigned long TestApplication::countOfWords( const std::string &target_word ) {
+	static auto stream_deleter = [](std::ifstream* s){
+		if(s->is_open()) s->close();
+		delete s;
+	};
+
+	std::unique_ptr<std::ifstream, std::function<void(std::ifstream*)>> ifs{new std::ifstream(), stream_deleter};
+	ifs->open(target_filename);
+	if(!ifs->is_open())
+		throw std::runtime_error{ "'" + target_filename + "' file opening error" };
+
+	std::string word;
+	unsigned long word_count = 0;
+	while(*ifs >> word)
+		if(word == target_word) ++word_count;
+
+	return word_count;
 }

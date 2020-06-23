@@ -16,6 +16,8 @@ private:
 	std::string getArgValue(const std::string &arg_name) const;
 	void detectWorkMode();
 
+	unsigned long countOfWords( const std::string& target_word);
+
 	enum class WorkMode{
 		HELP,
 		WORDS,
@@ -27,6 +29,5 @@ private:
 	std::string application_name;
 	std::vector<std::string> args;
 };
-
 
 #endif //TEST_FILE_UTIL_TESTAPPLICATION_H
